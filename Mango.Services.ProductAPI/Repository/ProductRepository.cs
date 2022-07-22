@@ -29,13 +29,40 @@ public class ProductRepository : IProductRepository
         return _mapper.Map<ProductDto>(product);
     }
 
-    public Task<ProductDto> CreateUpdateProduct(ProductDto productDto)
+    public async Task<ProductDto> CreateUpdateProduct(ProductDto productDto)
     {
-        throw new NotImplementedException();
+        Product product = _mapper.Map<ProductDto, Product>(productDto);
+
+        if (product.ProductId > 0)
+        {
+            _dbContext.Products.Update(product);
+        }
+        else
+        {
+            _dbContext.Products.Add(product);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        return _mapper.Map<Product, ProductDto>(product);
     }
 
-    public Task<bool> DeleteProduct(int productId)
+    public async Task<bool> DeleteProduct(int productId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Product product = await _dbContext.Products.FirstOrDefaultAsync(u => u.ProductId == productId);
+            if (product == null)
+            {
+                return false;
+            }
+            _dbContext.Products.Remove(product);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }
