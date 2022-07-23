@@ -4,7 +4,7 @@ public static class SD
 {
     public static string ProductAPIBase { get; set; }
 
-    enum ApiType
+    public enum ApiType
     {
         GET,
         POST,
