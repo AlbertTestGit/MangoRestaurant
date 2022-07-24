@@ -1,7 +1,7 @@
 using System.Text;
-using System.Text.Json;
 using Mango.Web.Models;
 using Mango.Web.Services.IServices;
+using Newtonsoft.Json;
 
 namespace Mango.Web.Services;
 
@@ -29,7 +29,7 @@ public class BaseService : IBaseService
             if (apiRequest.Data != null)
             {
                 message.Content = new StringContent(
-                    JsonSerializer.Serialize(apiRequest.Data),
+                    JsonConvert.SerializeObject(apiRequest.Data),
                     Encoding.UTF8,
                     "application/json");
             }
@@ -55,7 +55,8 @@ public class BaseService : IBaseService
             apiResponse = await client.SendAsync(message);
 
             var apiContent = await apiResponse.Content.ReadAsStringAsync();
-            var apiResponseDto = JsonSerializer.Deserialize<T>(apiContent);
+            //var apiResponseDto = JsonSerializer.Deserialize<T>(apiContent);
+            var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
 
             return apiResponseDto;
         }
@@ -68,8 +69,8 @@ public class BaseService : IBaseService
                 IsSuccess = false
             };
 
-            var res = JsonSerializer.Serialize(dto);
-            var apiResponseDto = JsonSerializer.Deserialize<T>(res);
+            var res = JsonConvert.SerializeObject(dto);
+            var apiResponseDto = JsonConvert.DeserializeObject<T>(res);
 
             return apiResponseDto;
         }
