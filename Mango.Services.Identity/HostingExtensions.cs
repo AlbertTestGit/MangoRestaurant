@@ -1,3 +1,7 @@
+using Mango.Services.Identity.DbContexts;
+using Mango.Services.Identity.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace Mango.Services.Identity;
@@ -7,16 +11,29 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         // uncomment if you want to add a UI
-        //builder.Services.AddRazorPages();
+        builder.Services.AddRazorPages();
+        
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite(connectionString));
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
         builder.Services.AddIdentityServer(options =>
             {
+                options.Events.RaiseErrorEvents = true;
+                options.Events.RaiseInformationEvents = true;
+                options.Events.RaiseFailureEvents = true;
+                options.Events.RaiseSuccessEvents = true;
+                
                 // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                 options.EmitStaticAudienceClaim = true;
             })
-            .AddInMemoryIdentityResources(Config.IdentityResources)
-            .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients);
+            .AddInMemoryIdentityResources(SD.IdentityResources)
+            .AddInMemoryApiScopes(SD.ApiScopes)
+            .AddInMemoryClients(SD.Clients)
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddDeveloperSigningCredential();
 
         return builder.Build();
     }
@@ -31,14 +48,14 @@ internal static class HostingExtensions
         }
 
         // uncomment if you want to add a UI
-        //app.UseStaticFiles();
-        //app.UseRouting();
+        app.UseStaticFiles();
+        app.UseRouting();
 
         app.UseIdentityServer();
 
         // uncomment if you want to add a UI
-        //app.UseAuthorization();
-        //app.MapRazorPages().RequireAuthorization();
+        app.UseAuthorization();
+        app.MapRazorPages().RequireAuthorization();
 
         return app;
     }
