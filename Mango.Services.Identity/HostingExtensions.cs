@@ -1,4 +1,5 @@
 using Mango.Services.Identity.DbContexts;
+using Mango.Services.Identity.Initializer;
 using Mango.Services.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -34,12 +35,18 @@ internal static class HostingExtensions
             .AddInMemoryClients(SD.Clients)
             .AddAspNetIdentity<ApplicationUser>()
             .AddDeveloperSigningCredential();
+        
+        builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
         return builder.Build();
     }
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
+        using (var scope = app.Services.CreateScope()) {
+            var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+            dbInitializer.Initialize();
+        }
         app.UseSerilogRequestLogging();
 
         if (app.Environment.IsDevelopment())
