@@ -35,5 +35,20 @@ public static class SD
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 AllowedScopes = { "read", "write", "profile" }
             },
+            new()
+            {
+                ClientId = "mango",
+                ClientSecrets = { new Secret("secret".Sha256()) },
+                AllowedGrantTypes = GrantTypes.Code,
+                RedirectUris = { "https://localhost:7063/signin-oidc" },
+                PostLogoutRedirectUris = { "https://localhost:7063/signout-callback-oidc" },
+                AllowedScopes = new List<string>
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdentityServerConstants.StandardScopes.Email,
+                    "mango"
+                }
+            }
         };
 }
