@@ -5,6 +5,7 @@
 
 *.db
 *.jwk
+keys/
 
 # User-specific files
 *.rsuser
