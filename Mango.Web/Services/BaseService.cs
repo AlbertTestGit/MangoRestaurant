@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using Mango.Web.Models;
 using Mango.Web.Services.IServices;
@@ -34,6 +35,12 @@ public class BaseService : IBaseService
                     "application/json");
             }
 
+            if (!string.IsNullOrEmpty(apiRequest.AccessToken))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", apiRequest.AccessToken);
+            }
+            
             HttpResponseMessage apiResponse = null;
 
             switch (apiRequest.ApiType)
