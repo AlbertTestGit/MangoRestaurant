@@ -18,7 +18,6 @@ public class ProductAPIController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<object> Get()
     {
         try
@@ -36,7 +35,6 @@ public class ProductAPIController : ControllerBase
     }
     
     [HttpGet("{id}")]
-    [Authorize]
     public async Task<object> Get(int id)
     {
         try
