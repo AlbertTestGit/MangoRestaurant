@@ -36,7 +36,7 @@ public class CartRepository : ICartRepository
             await _dbContext.SaveChangesAsync();
         }
 
-        var cartHeaderFromDb = _dbContext.CartHeaders.FirstOrDefaultAsync(u =>
+        var cartHeaderFromDb = await _dbContext.CartHeaders.AsNoTracking().FirstOrDefaultAsync(u =>
             u.UserId == cart.CartHeader.UserId);
 
         if (cartHeaderFromDb == null)
@@ -48,9 +48,31 @@ public class CartRepository : ICartRepository
             cart.CartDetails.FirstOrDefault().Product = null;
 
             _dbContext.CartDetails.Add(cart.CartDetails.FirstOrDefault());
-
             await _dbContext.SaveChangesAsync();
         }
+        else
+        {
+            var cartDetailsFromDb = await _dbContext.CartDetails.AsNoTracking().FirstOrDefaultAsync(u =>
+                u.ProductId == cart.CartDetails.FirstOrDefault().ProductId
+                && u.CartHeaderId == cartHeaderFromDb.CartHeaderId);
+
+            if (cartDetailsFromDb == null)
+            {
+                cart.CartDetails.FirstOrDefault().CartHeaderId = cartHeaderFromDb.CartHeaderId;
+                cart.CartDetails.FirstOrDefault().Product = null;
+                _dbContext.CartDetails.Add(cart.CartDetails.FirstOrDefault());
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                cart.CartDetails.FirstOrDefault().Product = null;
+                cart.CartDetails.FirstOrDefault().Count += cartDetailsFromDb.Count;
+                _dbContext.CartDetails.Update(cart.CartDetails.FirstOrDefault());
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+        
+        return _mapper.Map<CartDto>(cart);
     }
 
     public async Task<bool> RemoveFromCart(int cartDetailsId)
