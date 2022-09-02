@@ -79,6 +79,8 @@ public class HomeController : Controller
         cartDto.CartDetails = cartDetailsDtos;
 
         var accessToken = await HttpContext.GetTokenAsync("access_token");
+        Console.WriteLine(JsonConvert.SerializeObject(cartDto));
+        Console.WriteLine(accessToken);
         var addToCartResp = await _cartService.AddToCartAsync<ResponseDto>(cartDto, accessToken);
         
         if (addToCartResp != null && addToCartResp.IsSuccess)
