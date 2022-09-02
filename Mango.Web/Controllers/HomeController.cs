@@ -12,11 +12,13 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IProductService _productService;
+    private readonly ICartService _cartService;
 
-    public HomeController(ILogger<HomeController> logger, IProductService productService)
+    public HomeController(ILogger<HomeController> logger, IProductService productService, ICartService cartService)
     {
         _logger = logger;
         _productService = productService;
+        _cartService = cartService;
     }
 
     public async Task<IActionResult> Index()
@@ -46,6 +48,47 @@ public class HomeController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    [ActionName("Details")]
+    [Authorize]
+    public async Task<IActionResult> DetailsPost(ProductDto productDto)
+    {
+        CartDto cartDto = new()
+        {
+            CartHeader = new()
+            {
+                UserId = User.Claims.Where(u => u.Type == "sub")?.FirstOrDefault()?.Value
+            }
+        };
+
+        CartDetailsDto cartDetailsDto = new()
+        {
+            Count = productDto.Count,
+            ProductId = productDto.ProductId
+        };
+        
+        var resp = await _productService.GetProductByIdAsync<ResponseDto>(productDto.ProductId, "");
+
+        if (resp != null && resp.IsSuccess)
+        {
+            cartDetailsDto.Product = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(resp.Result));
+        }
+
+        List<CartDetailsDto> cartDetailsDtos = new();
+        cartDetailsDtos.Add(cartDetailsDto);
+        cartDto.CartDetails = cartDetailsDtos;
+
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var addToCartResp = await _cartService.AddToCartAsync<ResponseDto>(cartDto, accessToken);
+        
+        if (addToCartResp != null && addToCartResp.IsSuccess)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(productDto);
+    }
+    
     public IActionResult Privacy()
     {
         return View();
