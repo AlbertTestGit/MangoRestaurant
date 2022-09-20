@@ -118,4 +118,21 @@ public class CartAPIController : Controller
 
         return _response;
     }
+    
+    [HttpPost("Checkout")]
+    public async Task<object> Checkout([FromBody]string userId)
+    {
+        try
+        {
+            bool isSuccess = await _cartRepository.RemoveCoupon(userId);
+            _response.Result = isSuccess;
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>() { e.ToString() };
+        }
+
+        return _response;
+    }
 }
